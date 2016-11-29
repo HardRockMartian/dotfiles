@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# this is the version from my notes.
+# doesn't seem to print author like I'm used to
+git log --oneline --decorate
