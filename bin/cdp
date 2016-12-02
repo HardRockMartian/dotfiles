@@ -1,0 +1,4 @@
+#!/bin/bash
+tmp=`pwd`
+cd $PREVDIR
+export PREVDIR=$tmp

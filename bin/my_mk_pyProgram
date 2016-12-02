@@ -1,0 +1,63 @@
+#!/bin/bash
+
+cat << EOF > $1
+#!/usr/bin/env python
+from __future__ import division
+import math
+from optparse import OptionParser, Values
+import commands, sys, os, glob, pdb
+
+def bash(cmd,cwd=None):
+    #runs a command in the bash shell and retuns a LIST OBJECT
+    #NOTE that " ".join(result) will concatinate back into single line.
+    retVal = commands.getoutput(cmd)
+    if retVal==['']:
+        return(0)
+    else:
+	#Don't know if split is needed here
+        return(retVal.split())
+
+""" # Work in progress. Need global options or some such setup. 
+def debugBreak(message):
+    if options.debug: 
+        print(message)
+        pdb.set_trace()
+"""
+
+def args():
+    return(sys.argv[1:])
+
+# get indexes of list if it were to be sorted.
+def sorted_idx(s):
+    return( sorted(range(len(s)), key=lambda k: s[k]) )
+
+# get the index in a list with a value of 'name'
+def named_idx(s, name):
+    return( s.index(name) )
+
+
+def main():
+    parser=OptionParser()
+    parser.add_option("--helpme", action="store_true", dest="helpme")
+    parser.add_option("--debug", action="store_true", dest="debug")
+
+    (options, args) = parser.parse_args()
+
+    if ( options.helpme ):
+        print( "help text")
+        exit()
+
+    # CODE GOES HERE
+    
+
+
+if __name__ == "__main__":
+    main()
+
+EOF
+
+chmod +x $1
+git init
+git add $1
+git commit -m "Initial Template Commit"
+emacs $1
