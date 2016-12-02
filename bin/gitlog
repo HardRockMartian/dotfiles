@@ -5,4 +5,4 @@
 #git log --oneline --decorate
 
 # I was right. This is the version I recovered from ivan
-git log --pretty=format:"%h%x09%an%x09%ad%x09%s"
+git --no-pager log --pretty=format:"%h%x09%an%x09%ad%x09%s"
