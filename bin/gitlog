@@ -2,4 +2,7 @@
 
 # this is the version from my notes.
 # doesn't seem to print author like I'm used to
-git log --oneline --decorate
+#git log --oneline --decorate
+
+# I was right. This is the version I recovered from ivan
+git log --pretty=format:"%h%x09%an%x09%ad%x09%s"
