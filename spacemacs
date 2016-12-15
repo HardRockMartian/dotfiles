@@ -51,6 +51,7 @@ values."
      org
      python
      latex
+     mu4e
      ;; (shell :variables
      ;;        shell-default-height 30
      ;;        shell-default-position 'bottom)
@@ -322,6 +323,8 @@ you should place your code here."
 
 ;; from http://www.emacswiki.org/emacs/Scrolling
 
+
+;; I want pageUp and pageDown to go all the way up or down
 (defun sfp-page-down ()
   (interactive)
   (setq this-command 'next-line)
@@ -339,6 +342,7 @@ you should place your code here."
 (global-set-key [next] 'sfp-page-down)
 (global-set-key [prior] 'sfp-page-up)
 
+;; Copy and Paste
 ;; from http://apple.stackexchange.com/questions/85222/configure-emacs-to-cut-and-copy-text-to-mac-os-x-clipboard
 (defun pbcopy ()
   (interactive)
@@ -354,10 +358,16 @@ you should place your code here."
   (pbcopy)
   (delete-region (region-beginning) (region-end)))
 
+ ;; NOTE: C-c is used by org-mode
  (global-set-key (kbd "C-c c") 'pbcopy) ;; CONFLICTS w/ org-capture
  (global-set-key (kbd "C-c v") 'pbpaste)
  (global-set-key (kbd "C-c x") 'pbcut)
 
+
+;; mu4e email settings
+(setq-default dotspacemacs-configuration-layers
+              '((mu4e :variables
+                      mu4e-installation-path "/usr/share/emacs/site-lisp")))
   ;; END AE additions
   )
 
