@@ -1,0 +1,4 @@
+#!/bin/bash
+# $1 needs to be a commit hex
+
+git reset --hard $1
