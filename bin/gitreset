@@ -1,4 +1,5 @@
 #!/bin/bash
 # $1 needs to be a commit hex
+# this is from http://stackoverflow.com/questions/4114095/how-to-revert-git-repository-to-a-previous-commit
 
 git reset --hard $1
