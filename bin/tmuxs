@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# from https://unix.stackexchange.com/questions/292137/tmux-script-to-launch-several-commands
+tmux new -s $1 'zsh' \; \
+split \; \
+resize-pane -D 20
