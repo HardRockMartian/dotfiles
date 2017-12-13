@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # from https://unix.stackexchange.com/questions/292137/tmux-script-to-launch-several-commands
-tmux new -s $1 'zsh' \; \
+
+# 171213 - changing to xonsh
+#tmux new -s $1 'zsh' \; \
+tmux new -s $1 'xonsh' \; \
 split \; \
 resize-pane -D 20
