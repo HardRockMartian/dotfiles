@@ -25,15 +25,31 @@
  (use-package try
 :ensure t)
 
-(use-package molokai-theme 
-  :ensure t
-  :load-path "themes"
-  :init
-  (setq molokai-theme-kit t)
-  :config
-  (load-theme 'molokai t)
-  )
+;;(use-package molokai-theme 
+;;  :ensure t
+;;  :load-path "themes"
+;;  :init
+;;  (setq molokai-theme-kit t)
+;;  :config
+;;  (load-theme 'molokai t)
+;;  )
 
+
+;; reading this about theme safety warnings
+;; https://emacs.stackexchange.com/questions/10246/emacs-always-ask-to-trust-colour-theme-at-startup
+;; RESULT: the setq custom-safe-themes bit worked
+
+;;(use-package color-theme-sanityinc-tomorrow
+;;  :ensure t
+;;  :init
+;;  (setq custom-safe-themes t)
+;;  (load-theme 'sanityinc-tomorrow-night)
+;;  )
+
+;; misterioso is built in
+(load-theme 'misterioso)
+
+;; END THEMES
 (delete-selection-mode 1)
 
 (set-keyboard-coding-system nil)
@@ -164,7 +180,22 @@
 
 
 ;; this is useful to restore minimized
-(global-set-key (kbd "C-x !") 'toggle-maximize-buffer)
+(defun toggle-maximize-buffer () "Maximize buffer"
+  (interactive)
+  (if (= 1 (length (window-list)))
+      (jump-to-register '_) 
+    (progn
+      (window-configuration-to-register '_)
+      (delete-other-windows))))
+
+;; shortcut for above
+;;(global-set-key (kbd "C-x !") 'toggle-maximize-buffer)
+
+;; I actually want toggle to be the default behavior
+(global-set-key (kbd "C-x 1") 'toggle-maximize-buffer)
+
+;; END toggle-maximize
+
 
 ;; My pageup and pagedown ALL the way!
 (defun sfp-page-down()
@@ -309,7 +340,14 @@
 ;; config INITs go here
 (add-to-list 'load-path "~/.emacs.d/config_INITS/")
 
+;; has elpy in company presently 
 (load-library "company_INIT")
+
+;; adding this here until I get a better Python section
+;; this is from https://stackoverflow.com/questions/4251159/set-python-indent-to-2-spaces-in-emacs-23
+(custom-set-variables
+ '(python-guess-indent nil)
+ '(python-indent 2))
 
 
 
@@ -321,6 +359,16 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(company-dabbrev-downcase nil)
+ '(company-dabbrev-ignore-case nil)
+ '(company-idle-delay 0.2)
+ '(company-minimum-prefix-length 2)
+ '(company-require-match nil)
+ '(company-selection-wrap-around t)
+ '(company-show-numbers t)
+ '(custom-safe-themes
+   (quote
+    ("a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" default)))
  '(package-selected-packages
    (quote
     (elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package))))
