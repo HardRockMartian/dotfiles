@@ -46,8 +46,11 @@
 ;;  (load-theme 'sanityinc-tomorrow-night)
 ;;  )
 
-;; misterioso is built in
-(load-theme 'misterioso)
+;; misterioso is built in and not bad
+;;(load-theme 'misterioso)
+
+;; wombat has a color scheme I'm happier with. Wish the status had color, but what can you do.
+(load-theme 'wombat)
 
 ;; END THEMES
 (delete-selection-mode 1)
@@ -94,6 +97,12 @@
 	    (dired-hide-details-mode)
 	    (dired-sort-toggle-or-edit)))
 
+;; better defaults and registers (I hope?)
+;; from https://www.emacswiki.org/emacs/BetterRegisters
+;;(use-package better-defaults
+;;  :ensure t)
+;; NOPE. Not the same. better registers is here:
+;; https://www.emacswiki.org/emacs/better-registers.el
 
 (use-package telephone-line
   :ensure t
@@ -102,6 +111,13 @@
   :config
   (telephone-line-mode 1)
   )
+
+;; switch focus when splitting windows
+;; from https://stackoverflow.com/questions/6464738/how-can-i-switch-focus-after-buffer-split-in-emacs
+;; I added balance-windows
+(global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1) (balance-windows) ) )
+(global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1) (balance-windows) ) )
+
 
 
 ;; look into replacing this with multi-term-dedicated
@@ -328,6 +344,7 @@
   (setq ibuffer-sidebar-use-custom-font t)
   (setq ibuffer-sidebar-face `(:family "Helvetica" :height 140)))
 
+;; I have this here although I don't use it
 (defun sidebar-toggle ()
   "Toggle both `dired-sidebar' and `ibuffer-sidebar'."
   (interactive)
@@ -335,7 +352,13 @@
   (ibuffer-sidebar-toggle-sidebar))
 
 ;; now use the function above
-(global-set-key (kbd "C-x D") 'sidebar-toggle)
+;; I actually don't like the ibuffer sidebar list. Don't see myself using it.
+;;(global-set-key (kbd "C-x D") 'sidebar-toggle)
+(global-set-key (kbd "C-x D") 'dired-sidebar-toggle-sidebar)
+
+
+
+;; END DIRED SIDEBAR ------------------------------------------------------------------------------
 
 ;; config INITs go here
 (add-to-list 'load-path "~/.emacs.d/config_INITS/")
@@ -345,15 +368,6 @@
 
 ;; adding this here until I get a better Python section
 ;; this is from https://stackoverflow.com/questions/4251159/set-python-indent-to-2-spaces-in-emacs-23
-(custom-set-variables
- '(python-guess-indent nil)
- '(python-indent 2))
-
-
-
-
-;; END DIRED SIDEBAR ------------------------------------------------------------------------------
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -368,10 +382,14 @@
  '(company-show-numbers t)
  '(custom-safe-themes
    (quote
-    ("a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" default)))
+    ("11e57648ab04915568e558b77541d0e94e69d09c9c54c06075938b6abc0189d8" "a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" default)))
  '(package-selected-packages
    (quote
-    (elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package))))
+    (elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
+ '(python-indent-guess-indent-offset nil)
+ '(python-indent-offset 2))
+
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
