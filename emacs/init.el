@@ -17,7 +17,10 @@
 ;; leftover from emacs bootstrap in case I want a local load-path 
 ;; (add-to-list 'load-path (concat user-emacs-directory "elisp")) 
 (add-to-list 'package-archives
- '("melpa" . "https://melpa.org/packages/"))
+	     '("melpa" . "https://melpa.org/packages/")
+	     )
+(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+
 
 ;; initial attempt at use-package 
 ;; Bootstrap `use-package'
@@ -101,6 +104,24 @@
 
 ;; I think this is about pasting into a selection
 (delete-selection-mode 1)
+
+;; shift selection seems to be working out of the box (or is configured elsewhere)
+;; want my meta-shift-arrows to jump by word
+
+;; RESULT 'mark-word-right needs to be a real function
+;;(global-set-key (kbd "M-S-<right>") 'mark-word-right)
+
+;; confused why this doesn't work. Maybe M-@ binding trumps it?
+;; reading: https://emacs.stackexchange.com/questions/27464/shift-key-is-not-working-after-meta-key-mac-osx
+;;(global-set-key (kbd "M-S-<right>") 'mark-word)
+
+;; doesn't fix things for me
+;;(global-set-key [(meta shift right)] 'mark-word)
+
+;; look into windmove later
+;; https://emacs.stackexchange.com/questions/3458/how-to-switch-between-windows-quickly
+
+
 
 ;; view large files
 ;; from https://github.com/AnthonyDiGirolamo/dotemacs/blob/master/README.org#emacs-and-git-on-windows
@@ -191,24 +212,9 @@
     (set-buffer-process-coding-system 'utf-8-unix 'utf-8-unix))
 (ad-activate 'ansi-term)
 
-(use-package shell-pop
-  :ensure t
-  :init
-  (require 'shell-pop)
-  :bind (("C-t" . shell-pop))
-  :config
-  (setq shell-pop-shell-type (quote ("ansi-term" "*ansi-term*" (lambda nil (ansi-term shell-pop-term-shell)))))
-  ;;(setq shell-pop-term-shell "/bin/zsh")
-  ;;(setq shell-pop-term-shell "/usr/local/bin/fish")
-  
-  ;; added a few non-working configs 190124
-  
-  (setq shell-pop-full-span t)
-  (setq shell-pop-window-position "bottom")
 
-  ;; need to do this manually or not picked up by `shell-pop'
-  (shell-pop--set-shell-type 'shell-pop-shell-type shell-pop-shell-type)
-  )
+
+
 
 
 ;; Not sure I was ever using new_buffer_INIT
@@ -239,11 +245,40 @@
 ;;
 (electric-pair-mode 1)
 
+;; deft
+(use-package deft
+  :ensure t
+  ;; :bind ("<f8>" . deft)
+  :commands (deft)
+  :config (setq deft-directory "~/Nextcloud/Documents/agendas"
+                deft-extensions '("org" "md"))
+  :init
+  (setq deft-use-filename-as-title t)
+  )
+
 ;; org-babel, I want Python
 ;; READ: https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
+
+(setq org-agenda-files
+    (file-expand-wildcards "~/Nextcloud/Documents/orgmode/*.org"))
+
+
+(use-package ob-ipython
+  :ensure t
+  :init
+  (setq exec-path (append exec-path '("~/anaconda/bin")))
+  (setq org-babel-python-command "~/anaconda/bin/python3")
+  )
+
 (org-babel-do-load-languages
  'org-babel-load-languages
- '((python . t)))
+ '((python . t)
+   (ipython . t)
+   (latex . t)
+   ))
+
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
+
 
 ;; multiple cursors
 (use-package multiple-cursors
@@ -331,6 +366,9 @@
   :ensure t
   :config
   (global-set-key "\C-s" 'swiper))
+
+(use-package counsel-tramp
+  :ensure t)
 
 (use-package counsel
   :ensure t
@@ -432,14 +470,63 @@
 ;; doom theme (newer possible choice)
 ;;(load-library "doom-themes_INIT")
 
+(load-library "eshell-pop_INIT")
+(global-set-key (kbd "C-t") 'shell-pop)
+
+;; aweshell from https://github.com/manateelazycat/aweshell
+;; cloned git repo in my config_INITS
+(require 'aweshell)
+
+(use-package eshell-prompt-extras
+  :ensure t
+  :config
+(with-eval-after-load "esh-opt"
+  (autoload 'epe-theme-lambda "eshell-prompt-extras")
+  (setq eshell-highlight-prompt nil
+        eshell-prompt-function 'epe-theme-lambda))
+  )
+
+;; I like powerline. Have this load last
+(use-package eshell-git-prompt
+  :ensure t
+  :config
+  (eshell-git-prompt-use-theme 'powerline)
+  )
+
+;; other stuff from http://www.howardism.org/Technical/Emacs/eshell-present.html
+;; Couldn't get my current emacs happy with these
+
+;;(add-to-list 'eshell-visual-commands "top")
+;;(add-to-list 'eshell-visual-options '("git" "--help"))
+;;(add-to-list 'eshell-visual-subcommands
+;;	     '("git" "log" "diff" "show"))
+(setq eshell-destroy-buffer-when-process-dies t)
+
+
+;; from https://emacs.stackexchange.com/questions/12503/how-to-clear-the-eshell
+;;(defun eshell/clear ()
+;;  "Clear the eshell buffer."
+;;  (let ((inhibit-read-only t))
+;;    (erase-buffer)
+;;    (eshell-send-input)))
+
+;Clear the eshell buffer.
+(defun eshell/clear ()      
+   (let ((eshell-buffer-maximum-lines 0)) (eshell-truncate-buffer)))
+
 
 ;; has elpy in company presently 
 (load-library "company_INIT")
 (load-library "spell_INIT")
 (load-library "togetherly_INIT")
 (load-library "ein_INIT")
+(load-library "org_INIT") ;; want org-secretary from here in org-plus-contrib
 ;;(load-library "pcomplete_INIT")
+;;(load-library "bookmark_plus_INIT")  NOT IN MELPA
 
+
+;; from https://emacs.stackexchange.com/questions/30690/code-auto-completion-with-ivy
+;; DISABLED
 
 ;; adding this here until I get a better Python section
 ;; this is from https://stackoverflow.com/questions/4251159/set-python-indent-to-2-spaces-in-emacs-23
@@ -460,7 +547,7 @@
     ("151bde695af0b0e69c3846500f58d9a0ca8cb2d447da68d7fbf4154dcf818ebc" "f0dc4ddca147f3c7b1c7397141b888562a48d9888f1595d69572db73be99a024" "100e7c5956d7bb3fd0eebff57fde6de8f3b9fafa056a2519f169f85199cc1c96" "e9776d12e4ccb722a2a732c6e80423331bcb93f02e089ba2a4b02e85de1cf00e" "b3775ba758e7d31f3bb849e7c9e48ff60929a792961a2d536edec8f68c671ca5" "c48551a5fb7b9fc019bf3f61ebf14cf7c9cdca79bcb2a4219195371c02268f11" "11e57648ab04915568e558b77541d0e94e69d09c9c54c06075938b6abc0189d8" "a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" default)))
  '(package-selected-packages
    (quote
-    (solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
+    (addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
  '(python-indent-guess-indent-offset nil)
  '(python-indent-offset 2))
 
