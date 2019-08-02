@@ -72,16 +72,66 @@
 ;; wombat wasn't a bad choice
 ;; this is from https://github.com/cocreature/dotfiles/blob/master/emacs/.emacs.d/emacs.org
 
-(use-package doom-themes
+;; 190719 was using this until emax64 and Fluc (as likely theme there)
+;;(use-package doom-themes
+;;  :ensure t
+;;  :config
+;;  (progn
+;;    (setq doom-one-brighter-comments t)
+;;    (load-theme 'doom-one t)
+;;    )
+;;  )
+
+
+;; Thought this was the theme used by emax64
+;; apparently, it isn't
+;;(use-package flucui-themes
+;;  :ensure t
+;;  :config
+;;  (flucui-themes-load-style 'dark)
+;;  )
+
+;; from emax64
+(use-package zenburn-theme
   :ensure t
+  :demand t
   :config
-  (progn
-    (setq doom-one-brighter-comments t)
-    (load-theme 'doom-one t)
+  (load-theme 'zenburn t)
+  (set-face-attribute 'font-lock-comment-face nil :italic t)
+  (set-face-attribute 'font-lock-doc-face nil :italic t)
+  (zenburn-with-color-variables
+    (set-face-attribute 'button nil :foreground zenburn-yellow-2)
+;;    (set-face-attribute 'default nil
+;;                        :background zenburn-bg-05
+;;                        :height mp/font-size-default
+;;                        :font mp/font-family)
+;;    (set-face-attribute 'help-argument-name nil :foreground zenburn-orange :italic nil)
+;;    (set-face-attribute 'hl-line nil :background zenburn-bg+1)
+;;    (set-face-attribute 'header-line nil
+;;                        :background zenburn-bg-1
+;;                        :box `(:line-width 2 :color ,zenburn-bg-1)
+;;                        :height mp/font-size-header-line)
+;;    (set-face-attribute 'mode-line nil
+;;                        :box `(:line-width 2 :color ,zenburn-bg-1)
+;;                        :foreground zenburn-bg+3
+;;                        :height mp/font-size-mode-line)
+;;    (set-face-attribute 'mode-line-inactive nil
+;;                        :box `(:line-width 2 :color ,zenburn-bg-05)
+;;                        :foreground zenburn-bg+3
+;;                        :height mp/font-size-mode-line)
+;;    (set-face-attribute 'region nil
+;;                        :background zenburn-fg-1
+;;                        :distant-foreground 'unspecified)
+;;    (set-face-attribute 'vertical-border nil :foreground zenburn-bg)
     )
-  )
 
-
+  ;; NOTE: See https://github.com/bbatsov/zenburn-emacs/issues/278.
+  (zenburn-with-color-variables
+    (mapc
+     (lambda (face)
+       (when (eq (face-attribute face :background) zenburn-bg)
+         (set-face-attribute face nil :background 'unspecified)))
+     (face-list))))
 
 
 
@@ -101,6 +151,9 @@
 ;; Maybe look into moe-theme next ... but I think I'm relatively OK with this sublime-theme "hickey"
 
 ;; END THEMES
+
+;; desktop mode so eyebrowse supposedly saves (and other reasons)
+(desktop-save-mode 1)
 
 ;; I think this is about pasting into a selection
 (delete-selection-mode 1)
@@ -162,7 +215,7 @@
 
 ;; bury scratch
 (defun bury-messages-and-scratch ()
-  (mapcar #'bury-buffer '("*Messages*" "*scratch*")))
+  (mapcar #'bury-buffer '("*Messages*" "*scratch*" "*Org Agenda*")))
 
 (add-hook 'emacs-startup-hook #'bury-messages-and-scratch) 
 
@@ -245,6 +298,13 @@
 ;;
 (electric-pair-mode 1)
 
+
+;; look into these TODO "extensions"
+;; https://orgmode.org/manual/TODO-extensions.html#TODO-extensions
+
+;; and these calendar/diary extensions mentioned here
+;; https://orgmode.org/manual/Timestamps.html#Timestamps
+
 ;; deft
 (use-package deft
   :ensure t
@@ -260,9 +320,10 @@
 ;; READ: https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
 
 (setq org-agenda-files
-    (file-expand-wildcards "~/Nextcloud/Documents/orgmode/*.org"))
+    (file-expand-wildcards "~/Nextcloud/Documents/agendas/*.org"))
 
 
+;; org babel for iPython ... so I can work %magic%
 (use-package ob-ipython
   :ensure t
   :init
@@ -362,6 +423,37 @@
   (global-set-key (kbd "C-c C-r") 'ivy-resume)
   (global-set-key (kbd "<f6>") 'ivy-resume))
 
+;; from https://github.com/abo-abo/swiper/issues/1079
+(defun peng-save-ivy-views ()
+(interactive)
+(with-temp-file "~/.emacs.d/ivy-views"
+(prin1 ivy-views (current-buffer))
+(message "save ivy-views to ~/.emacs.d/ivy-views")))
+
+(defun peng-load-ivy-views ()
+(interactive)
+(setq ivy-views
+(with-temp-buffer
+(insert-file-contents "~/.emacs.d/ivy-views")
+(read (current-buffer))))
+(message "load ivy-views"))
+
+
+;; Discovered ivy-rich. Not sure it is doing that much for me.
+
+;;(use-package ivy-rich
+;;  :ensure t
+;;  :init
+;;  (require 'ivy-rich)
+;;  (ivy-rich-mode 1)
+;;  :config
+;;  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
+;;
+;;  (:columns
+;; ((counsel-M-x-transformer (:width 40))
+;;  (ivy-rich-counsel-function-docstring (:face font-lock-doc-face))))
+;;)
+
 (use-package swiper
   :ensure t
   :config
@@ -392,86 +484,39 @@
 
 ;; END IVY SETUP ----------------------------------------------------------------------------------
 
-;; BEGIN DIRED SIDEBAR (more complex that I thought) ----------------------------------------------
-
-;; dired-hacks are required for subtree feature
-(use-package dired-hacks-utils :ensure t)
-
-(use-package dired-sidebar
-  ;;:bind (("C-x D" . dired-sidebar-toggle-sidebar))
-  :ensure t
-  :commands (dired-sidebar-toggle-sidebar)
-  :config
-  (setq dired-sidebar-subtree-line-prefix " .")
-  (cond
-   ((eq system-type 'darwin)
-    (if (display-graphic-p)
-        (setq dired-sidebar-theme 'icons)
-      (setq dired-sidebar-theme 'nerd))
-    (setq dired-sidebar-face '(:family "Helvetica" :height 140)))
-   ((eq system-type 'windows-nt)
-    (setq dired-sidebar-theme 'nerd)
-    (setq dired-sidebar-face '(:family "Lucida Sans Unicode" :height 110)))
-   (:default
-    (setq dired-sidebar-theme 'nerd)
-    (setq dired-sidebar-face '(:family "Arial" :height 140))))
-
-  (setq dired-sidebar-use-term-integration t)
-  (setq dired-sidebar-use-custom-font t)
-
-  (use-package all-the-icons-dired
-    ;; M-x all-the-icons-install-fonts
-    :ensure t
-    :commands (all-the-icons-dired-mode)))
-
-;; AE: I want my C-o back
-;;(define-key dired-sidebar-mode-map "\C-o" nil)
-;; above didn't work and neither did removing it from the
-;; dired-sidebar.el code itself
-
-;; AE: trying to just trump C-o
-;; NOTE: C-o is normally "open new line"
-
-;; :bind (("C-o" . dired-display-file))
-
-;; no complains, but doesn't work
-;; (global-set-key (kbd "C-o") 'dired-display-file)
-
-;; A little confused by this ibuffer sidebar install
-;; I M-x installed ibuffer-sidebar. Not sure if this load-path is needed?
-;; I don'thave a "fork" directory, for instance
-
-(use-package ibuffer-sidebar
-  ;;:load-path "~/.emacs.d/fork/ibuffer-sidebar"
-  :ensure t
-  ;;:bind (("C-x D" . sidebar-toggle))
-  :config
-  (setq ibuffer-sidebar-use-custom-font t)
-  (setq ibuffer-sidebar-face `(:family "Helvetica" :height 140)))
-
-;; I have this here although I don't use it
-(defun sidebar-toggle ()
-  "Toggle both `dired-sidebar' and `ibuffer-sidebar'."
-  (interactive)
-  (dired-sidebar-toggle-sidebar)
-  (ibuffer-sidebar-toggle-sidebar))
-
-;; now use the function above
-;; I actually don't like the ibuffer sidebar list. Don't see myself using it.
-;;(global-set-key (kbd "C-x D") 'sidebar-toggle)
-(global-set-key (kbd "C-x D") 'dired-sidebar-toggle-sidebar)
-
-;; END DIRED SIDEBAR ------------------------------------------------------------------------------
 
 
 ;; config INITs go here
 (add-to-list 'load-path "~/.emacs.d/config_INITS/")
 
+;; dired-sidebar or treemacs
+;;(load-library "dired-sidebar_INIT")
+(load-library "treemacs_INIT")
+
+
 ;; doom theme (newer possible choice)
 ;;(load-library "doom-themes_INIT")
 
-(load-library "eshell-pop_INIT")
-(global-set-key (kbd "C-t") 'shell-pop)
+;; centaur-tabs
+(load-library "centaur-tabs_INIT")
+
+;; persp-mode (perhaps later)
+;;(load-library "persp-mode_INIT")
+
+
+;; was never able to get this to save via desktop.el
+;;(load-library "eyebrowse_INIT")
+
+;; this was my shell-pop before switching to multi-term
+;;(load-library "shell-pop_INIT")
+;;(global-set-key (kbd "C-t") 'shell-pop)
+
+
+(load-library "multi-term_INIT")
+;; not sure why this wasn't happy inside my config_INIT as a :bind
+;; this works getting into the term, but not leaving it. Will close if not in it
+;; added (other-window -1) but didn't help
+(global-set-key (kbd "C-t") (lambda() (interactive) (multi-term-dedicated-toggle)(multi-term-dedicated-select)))
 
 ;; aweshell from https://github.com/manateelazycat/aweshell
 ;; cloned git repo in my config_INITS
@@ -520,6 +565,10 @@
 (load-library "spell_INIT")
 (load-library "togetherly_INIT")
 (load-library "ein_INIT")
+
+;; this is a starter kit that unfortunately takes things over
+;;(load-library "scimax_INIT")
+
 (load-library "org_INIT") ;; want org-secretary from here in org-plus-contrib
 ;;(load-library "pcomplete_INIT")
 ;;(load-library "bookmark_plus_INIT")  NOT IN MELPA
@@ -547,7 +596,7 @@
     ("151bde695af0b0e69c3846500f58d9a0ca8cb2d447da68d7fbf4154dcf818ebc" "f0dc4ddca147f3c7b1c7397141b888562a48d9888f1595d69572db73be99a024" "100e7c5956d7bb3fd0eebff57fde6de8f3b9fafa056a2519f169f85199cc1c96" "e9776d12e4ccb722a2a732c6e80423331bcb93f02e089ba2a4b02e85de1cf00e" "b3775ba758e7d31f3bb849e7c9e48ff60929a792961a2d536edec8f68c671ca5" "c48551a5fb7b9fc019bf3f61ebf14cf7c9cdca79bcb2a4219195371c02268f11" "11e57648ab04915568e558b77541d0e94e69d09c9c54c06075938b6abc0189d8" "a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" default)))
  '(package-selected-packages
    (quote
-    (addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
+    (ivy-rich centaur-tabs powershell addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
  '(python-indent-guess-indent-offset nil)
  '(python-indent-offset 2))
 
