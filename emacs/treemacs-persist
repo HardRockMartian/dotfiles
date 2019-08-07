@@ -1,0 +1,9 @@
+* Default
+** Home
+ - path :: /Users/anthony
+* Emacs_INIT
+** Emacs_INIT_main
+ - path :: /Users/anthony/.emacs.d
+* SSIPP
+** SSIPP_main
+ - path :: /Users/anthony/Research/SSIPP

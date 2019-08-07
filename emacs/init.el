@@ -66,7 +66,7 @@
 ;;(load-theme 'misterioso)
 
 ;; wombat has a color scheme I'm happier with. Wish the status had color, but what can you do.
-;;(load-theme 'wombat)
+(load-theme 'wombat)
 
 ;; my doom-theme thing was complicated. trying out simpler
 ;; wombat wasn't a bad choice
@@ -92,15 +92,15 @@
 ;;  )
 
 ;; from emax64
-(use-package zenburn-theme
-  :ensure t
-  :demand t
-  :config
-  (load-theme 'zenburn t)
-  (set-face-attribute 'font-lock-comment-face nil :italic t)
-  (set-face-attribute 'font-lock-doc-face nil :italic t)
-  (zenburn-with-color-variables
-    (set-face-attribute 'button nil :foreground zenburn-yellow-2)
+;;(use-package zenburn-theme
+;;  :ensure t
+;;  :demand t
+;;  :config
+;;  (load-theme 'zenburn t)
+;;  (set-face-attribute 'font-lock-comment-face nil :italic t)
+;;  (set-face-attribute 'font-lock-doc-face nil :italic t)
+;;  (zenburn-with-color-variables
+;;    (set-face-attribute 'button nil :foreground zenburn-yellow-2)
 ;;    (set-face-attribute 'default nil
 ;;                        :background zenburn-bg-05
 ;;                        :height mp/font-size-default
@@ -123,15 +123,15 @@
 ;;                        :background zenburn-fg-1
 ;;                        :distant-foreground 'unspecified)
 ;;    (set-face-attribute 'vertical-border nil :foreground zenburn-bg)
-    )
+;;    )
 
   ;; NOTE: See https://github.com/bbatsov/zenburn-emacs/issues/278.
-  (zenburn-with-color-variables
-    (mapc
-     (lambda (face)
-       (when (eq (face-attribute face :background) zenburn-bg)
-         (set-face-attribute face nil :background 'unspecified)))
-     (face-list))))
+;;  (zenburn-with-color-variables
+;;    (mapc
+;;     (lambda (face)
+;;       (when (eq (face-attribute face :background) zenburn-bg)
+;;         (set-face-attribute face nil :background 'unspecified)))
+;;     (face-list))))
 
 
 
@@ -150,7 +150,46 @@
 
 ;; Maybe look into moe-theme next ... but I think I'm relatively OK with this sublime-theme "hickey"
 
+;; made selected window different
+;; CLUES: https://emacs.stackexchange.com/questions/24630/is-there-a-way-to-change-color-of-active-windows-fringe
+;; this isn't dramatic enough by itself
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:background nil))))
+ '(mode-line ((t (:background "dim gray" :foreground "white"))))
+ '(mode-line-inactive ((t (:background nil)))))
+
+;; adding this ... perfect!
+;; actually finding that it isn't really working in my terminal at least.
+
+;;(defun highlight-selected-window ()
+;;  "Highlight selected window with a different background color."
+;;  (walk-windows (lambda (w)
+;;                  (unless (eq w (selected-window))
+;;                    (with-current-buffer (window-buffer w)
+;;                      (buffer-face-set '(:background "#111"))))))
+;;  (buffer-face-set 'default))
+;;(add-hook 'buffer-list-update-hook 'highlight-selected-window)
+
+;; changing divider character
+;; from https://www.reddit.com/r/emacs/comments/3u0d0u/how_do_i_make_the_vertical_window_divider_more/
+
+;; RESULT: the special character bit doesn't work well. required me do change my init.el to "raw-text" format and then didn't work anyway.
+
+;; this option is a definate improvement. Changed to dark gray
+(set-face-background 'vertical-border "dark gray")
+(set-face-foreground 'vertical-border (face-background 'vertical-border))
+
+
 ;; END THEMES
+
+;; trying to keep buffers clean
+;; read this https://www.emacswiki.org/emacs/MidnightMode
+;;(require 'midnight)
+
 
 ;; desktop mode so eyebrowse supposedly saves (and other reasons)
 (desktop-save-mode 1)
@@ -178,10 +217,12 @@
 
 ;; view large files
 ;; from https://github.com/AnthonyDiGirolamo/dotemacs/blob/master/README.org#emacs-and-git-on-windows
-(use-package vlf
-  :ensure t
-  :config (progn
-            (require 'vlf-setup)))
+
+;; 190806 seems this became broken on elpa. Disabling (never used anyway)
+;;(use-package vlf
+;;  :ensure t
+;;  :config (progn
+;;            (require 'vlf-setup)))
 
 (set-keyboard-coding-system nil)
 
@@ -243,8 +284,10 @@
 ;; switch focus when splitting windows
 ;; from https://stackoverflow.com/questions/6464738/how-can-i-switch-focus-after-buffer-split-in-emacs
 ;; I added balance-windows
-(global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1) (balance-windows) ) )
-(global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1) (balance-windows) ) )
+;; 190804 would like this to be limited to splitting the current window ... which I think is the default behavior
+;; does call for some way to split X even ways. Need to revisit
+;;(global-set-key "\C-x2" (lambda () (interactive)(split-window-vertically) (other-window 1) (balance-windows) ) )
+;;(global-set-key "\C-x3" (lambda () (interactive)(split-window-horizontally) (other-window 1) (balance-windows) ) )
 
 
 
@@ -489,10 +532,13 @@
 ;; config INITs go here
 (add-to-list 'load-path "~/.emacs.d/config_INITS/")
 
+;; this didn't quite do what I wanted in that it balanced everything
+;;(load-library "afe-winsplit_INIT")
+
+
 ;; dired-sidebar or treemacs
 ;;(load-library "dired-sidebar_INIT")
 (load-library "treemacs_INIT")
-
 
 ;; doom theme (newer possible choice)
 ;;(load-library "doom-themes_INIT")
@@ -500,8 +546,13 @@
 ;; centaur-tabs
 (load-library "centaur-tabs_INIT")
 
-;; persp-mode (perhaps later)
-;;(load-library "persp-mode_INIT")
+;; persp-mode (trying out 190804)
+;; autoresume seems to conflict with treemacs launching. Perhaps need to "defer"
+(load-library "persp-mode_INIT")
+
+;; launch treemacs after persp-mode
+(treemacs)
+
 
 
 ;; was never able to get this to save via desktop.el
@@ -594,16 +645,15 @@
  '(custom-safe-themes
    (quote
     ("151bde695af0b0e69c3846500f58d9a0ca8cb2d447da68d7fbf4154dcf818ebc" "f0dc4ddca147f3c7b1c7397141b888562a48d9888f1595d69572db73be99a024" "100e7c5956d7bb3fd0eebff57fde6de8f3b9fafa056a2519f169f85199cc1c96" "e9776d12e4ccb722a2a732c6e80423331bcb93f02e089ba2a4b02e85de1cf00e" "b3775ba758e7d31f3bb849e7c9e48ff60929a792961a2d536edec8f68c671ca5" "c48551a5fb7b9fc019bf3f61ebf14cf7c9cdca79bcb2a4219195371c02268f11" "11e57648ab04915568e558b77541d0e94e69d09c9c54c06075938b6abc0189d8" "a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" default)))
+ '(org-agenda-files
+   (quote
+    ("~/Nextcloud/Documents/agendas/aaa_capture.org" "~/Nextcloud/Documents/agendas/general_work.org")))
  '(package-selected-packages
    (quote
-    (ivy-rich centaur-tabs powershell addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
+    (ggtags ivy-rich centaur-tabs powershell addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
  '(python-indent-guess-indent-offset nil)
- '(python-indent-offset 2))
+ '(python-indent-offset 2)
+ '(treemacs-git-mode (quote extended)))
 
 
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:background nil)))))
+

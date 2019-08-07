@@ -1,3 +1,31 @@
+;; IMPORTANT: Hit TAB in treemacs to get the GTAGS for a file
+
+;; treemacs-create-workspace
+
+;; WAS modified from https://raw.githubusercontent.com/kaushalmodi/.emacs.d/master/setup-files/setup-tags.el
+;; NOW https://tuhdo.github.io/c-ide.html#orgheadline5
+(use-package ggtags
+  :ensure t
+  :init
+(require 'ggtags)
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
+              (ggtags-mode 1))))
+
+(define-key ggtags-mode-map (kbd "C-c g s") 'ggtags-find-other-symbol)
+(define-key ggtags-mode-map (kbd "C-c g h") 'ggtags-view-tag-history)
+(define-key ggtags-mode-map (kbd "C-c g r") 'ggtags-find-reference)
+(define-key ggtags-mode-map (kbd "C-c g f") 'ggtags-find-file)
+(define-key ggtags-mode-map (kbd "C-c g c") 'ggtags-create-tags)
+(define-key ggtags-mode-map (kbd "C-c g u") 'ggtags-update-tags)
+
+(define-key ggtags-mode-map (kbd "M-,") 'pop-tag-mark)
+
+  ;; AE adding gtags
+  (setq-local imenu-create-index-function #'ggtags-build-imenu-index)
+)
+
 (use-package treemacs
   :ensure t
   :defer t
@@ -7,6 +35,8 @@
   :config
   (progn
     (setq treemacs-collapse-dirs                 (if treemacs-python-executable 3 0)
+	  ;;treemacs-git-integration               t
+	  ;;treemacs-git-mode                      'simple
           treemacs-deferred-git-apply-delay      0.5
           treemacs-display-in-side-window        t
           treemacs-eldoc-display                 t
@@ -47,12 +77,16 @@
     (treemacs-follow-mode t)
     (treemacs-filewatch-mode t)
     (treemacs-fringe-indicator-mode t)
-    (pcase (cons (not (null (executable-find "git")))
-                 (not (null treemacs-python-executable)))
-      (`(t . t)
-       (treemacs-git-mode 'deferred))
-      (`(t . _)
-       (treemacs-git-mode 'simple))))
+
+    ;; getting rid of this case statement. Just use simple 
+;;    (pcase (cons (not (null (executable-find "git")))
+;;                 (not (null treemacs-python-executable)))
+;;      (`(t . t)
+;;       (treemacs-git-mode 'deferred))
+;;      (`(t . _)
+;;       (treemacs-git-mode 'simple))))
+    ;;(treemacs-git-mode 'simple)
+    )
   :bind
   (:map global-map
         ("M-0"       . treemacs-select-window)
@@ -62,9 +96,9 @@
         ("C-x t C-t" . treemacs-find-file)
         ("C-x t M-t" . treemacs-find-tag)))
 
-(use-package treemacs-projectile
-  :after treemacs projectile
-  :ensure t)
+;;(use-package treemacs-projectile
+;;  :after treemacs projectile
+;;  :ensure t)
 
 (use-package treemacs-icons-dired
   :after treemacs dired
@@ -74,3 +108,4 @@
 (use-package treemacs-magit
   :after treemacs magit
   :ensure t)
+
