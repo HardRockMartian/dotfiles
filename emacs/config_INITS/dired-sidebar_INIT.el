@@ -1,7 +1,17 @@
 ;; BEGIN DIRED SIDEBAR (more complex that I thought) ----------------------------------------------
 
+(use-package ibuffer-projectile
+  :ensure t
+  :init
+  (add-hook 'ibuffer-hook
+    (lambda ()
+      (ibuffer-projectile-set-filter-groups)
+      (unless (eq ibuffer-sorting-mode 'alphabetic)
+        (ibuffer-do-sort-by-alphabetic)))))
+
 ;; dired-hacks are required for subtree feature
-(use-package dired-hacks-utils :ensure t)
+(use-package dired-hacks-utils
+  :ensure t)
 
 (use-package dired-sidebar
   ;;:bind (("C-x D" . dired-sidebar-toggle-sidebar))
@@ -65,6 +75,6 @@
 ;; now use the function above
 ;; I actually don't like the ibuffer sidebar list. Don't see myself using it.
 ;;(global-set-key (kbd "C-x D") 'sidebar-toggle)
-(global-set-key (kbd "C-x D") 'dired-sidebar-toggle-sidebar)
+(global-set-key (kbd "C-x D") 'sidebar-toggle)
 
 ;; END DIRED SIDEBAR ------------------------------------------------------------------------------

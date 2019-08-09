@@ -190,12 +190,48 @@
 ;; read this https://www.emacswiki.org/emacs/MidnightMode
 ;;(require 'midnight)
 
+(menu-bar-mode 0)
 
 ;; desktop mode so eyebrowse supposedly saves (and other reasons)
 (desktop-save-mode 1)
 
 ;; I think this is about pasting into a selection
 (delete-selection-mode 1)
+
+;; eliminate buffers that mangle tabbar and that I don't need
+;; FROM https://unix.stackexchange.com/questions/19874/prevent-unwanted-buffers-from-opening
+
+
+;; Makes *scratch* empty.
+(setq initial-scratch-message "")
+
+;; Removes *scratch* from buffer after the mode has been set.
+(defun remove-scratch-buffer ()
+  (if (get-buffer "*scratch*")
+      (kill-buffer "*scratch*")))
+(add-hook 'after-change-major-mode-hook 'remove-scratch-buffer)
+
+;; Removes *messages* from the buffer.
+(setq-default message-log-max nil)
+(kill-buffer "*Messages*")
+
+;; Removes *Completions* from buffer after you've opened a file.
+(add-hook 'minibuffer-exit-hook
+      '(lambda ()
+         (let ((buffer "*Completions*"))
+           (and (get-buffer buffer)
+                (kill-buffer buffer)))))
+
+;; Don't show *Buffer list* when opening multiple files at the same time.
+(setq inhibit-startup-buffer-menu t)
+
+;; Show only one active window when opening multiple files at the same time.
+(add-hook 'window-setup-hook 'delete-other-windows)
+
+;; end eliminate buffers
+
+
+
 
 ;; shift selection seems to be working out of the box (or is configured elsewhere)
 ;; want my meta-shift-arrows to jump by word
@@ -370,8 +406,8 @@
 (use-package ob-ipython
   :ensure t
   :init
-  (setq exec-path (append exec-path '("~/anaconda/bin")))
-  (setq org-babel-python-command "~/anaconda/bin/python3")
+  (setq exec-path (append exec-path '("~/anaconda3/bin")))
+  (setq org-babel-python-command "~/anaconda3/bin/python3")
   )
 
 (org-babel-do-load-languages
@@ -448,6 +484,9 @@
 ;; OK. Here be Dragons. Helm or Ivy?
 ;; sticking with Ivy here
 
+
+;; END ORG MODE
+
 ;; BEGIN IVY SETUP ----------------------------------------------------------------------------------
 ;; This is nice, but not like my own setup
 ;; https://raw.githubusercontent.com/kaushalmodi/.emacs.d/master/setup-files/setup-ivy.el
@@ -467,13 +506,14 @@
   (global-set-key (kbd "<f6>") 'ivy-resume))
 
 ;; from https://github.com/abo-abo/swiper/issues/1079
-(defun peng-save-ivy-views ()
+;; changed from peng to ae
+(defun ae-save-ivy-views ()
 (interactive)
 (with-temp-file "~/.emacs.d/ivy-views"
 (prin1 ivy-views (current-buffer))
 (message "save ivy-views to ~/.emacs.d/ivy-views")))
 
-(defun peng-load-ivy-views ()
+(defun ae-load-ivy-views ()
 (interactive)
 (setq ivy-views
 (with-temp-buffer
@@ -527,6 +567,13 @@
 
 ;; END IVY SETUP ----------------------------------------------------------------------------------
 
+;; sticky buffer from https://lists.gnu.org/archive/html/help-gnu-emacs/2007-05/msg00975.html
+;; unfortunately, I don't think this is really doing what I might want in terms of surviving balance-windows.
+
+;;(define-minor-mode sticky-buffer-mode
+;;  "Make the current window always display this buffer."
+;;  nil " sticky" nil
+;;  (set-window-dedicated-p (selected-window) sticky-buffer-mode))
 
 
 ;; config INITs go here
@@ -536,22 +583,73 @@
 ;;(load-library "afe-winsplit_INIT")
 
 
-;; dired-sidebar or treemacs
-;;(load-library "dired-sidebar_INIT")
-(load-library "treemacs_INIT")
+(load-library "gtags_INIT")
+
+
+;; projectile first
+(load-library "projectile_INIT")
+
+;; then purpose (new 190808)
+(load-library "purpose_INIT")
+
+;; dired-sidebar or treemacs ... or both!
+(load-library "dired-sidebar_INIT")
+;;(load-library "treemacs_INIT")
 
 ;; doom theme (newer possible choice)
 ;;(load-library "doom-themes_INIT")
 
+
+;; turns out ALL tab solutions are frustrating
+;; they bounce around buffers. I actually WANT the
+;; same buffer in two different windows.
+
+;; have a tab solution later ... if ever
+
 ;; centaur-tabs
-(load-library "centaur-tabs_INIT")
+;;(load-library "centaur-tabs_INIT")
+
+;;(use-package tabbar
+;;  :ensure t
+;;  :init
+;;  (tabbar-mode 1)
+;;  )
+
+;; OK. I need to set this down. Mess with tabs later.
+;; current work is encapsulated here, however
+
+
+;;(load-library "better-tabbar_INIT")
+;;(global-set-key (kbd "C-<up>") 'awesome-tab-forward)
+;;(global-set-key (kbd "C-<down>") 'awesome-tab-backward)
+;;(global-set-key (kbd "C-S-<up>") 'awesome-tab-forward-group)
+;;(global-set-key (kbd "C-S-<down>") 'awesome-tab-backward-group)
+
+
+;; end current tabbar work
 
 ;; persp-mode (trying out 190804)
+;; RESULT: lots of problems including unwillingness to read the persp-config files IT MAKES ITSELF
+
 ;; autoresume seems to conflict with treemacs launching. Perhaps need to "defer"
-(load-library "persp-mode_INIT")
+;; IMPORTANT: perspective_INIT doesn't seem to support saving perspectives
+;; persp-mode_INIT DOES seem to save persepectives
+;;(load-library "persp-mode_INIT")
+
+;; think persp-projectile needs this and not persp-mode
+;; that appears to be correct
+;; something about this is still broken, however
+;;(load-library "perspective_INIT")
+
+;; this has just proven to be crap
+;;(use-package persp-projectile
+;;  :ensure t
+;;  :init
+;;  (require 'persp-projectile)
+;;  )
 
 ;; launch treemacs after persp-mode
-(treemacs)
+;;(treemacs)
 
 
 
@@ -614,7 +712,7 @@
 ;; has elpy in company presently 
 (load-library "company_INIT")
 (load-library "spell_INIT")
-(load-library "togetherly_INIT")
+;;(load-library "togetherly_INIT")
 (load-library "ein_INIT")
 
 ;; this is a starter kit that unfortunately takes things over
@@ -630,11 +728,21 @@
 
 ;; adding this here until I get a better Python section
 ;; this is from https://stackoverflow.com/questions/4251159/set-python-indent-to-2-spaces-in-emacs-23
+;; DISABLED
+
+;; something seems to be trumping these keyboard shortcuts from my centarur-tabs
+;;  ("C-<right>" . other-window)
+;;  ("C-<left>" . previous-multiframe-window)
+  (global-set-key (kbd "C-<right>") 'other-window)
+  (global-set-key (kbd "C-<left>") 'previous-multiframe-window)
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(awesome-tab-cycle-scope (quote tabs))
  '(company-dabbrev-downcase nil)
  '(company-dabbrev-ignore-case nil)
  '(company-idle-delay 0.2)
@@ -650,7 +758,7 @@
     ("~/Nextcloud/Documents/agendas/aaa_capture.org" "~/Nextcloud/Documents/agendas/general_work.org")))
  '(package-selected-packages
    (quote
-    (ggtags ivy-rich centaur-tabs powershell addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
+    (ibuffer-projectile counsel-projectile ggtags ivy-rich centaur-tabs powershell addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
  '(python-indent-guess-indent-offset nil)
  '(python-indent-offset 2)
  '(treemacs-git-mode (quote extended)))
