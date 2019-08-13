@@ -63,14 +63,22 @@
   ;;:bind (("C-x D" . sidebar-toggle))
   :config
   (setq ibuffer-sidebar-use-custom-font t)
-  (setq ibuffer-sidebar-face `(:family "Helvetica" :height 140)))
+  (setq ibuffer-sidebar-face `(:family "Helvetica" :height 140))
+  ;; this projectile bit should be defined above
+  ;; not sure where it needs to be activated
+  ;;(ibuffer-projectile-set-filter-groups)
+  )
 
 ;; I have this here although I don't use it
 (defun sidebar-toggle ()
   "Toggle both `dired-sidebar' and `ibuffer-sidebar'."
   (interactive)
   (dired-sidebar-toggle-sidebar)
-  (ibuffer-sidebar-toggle-sidebar))
+  (ibuffer-sidebar-toggle-sidebar)
+  ;; not sure where this needs to go ... if it can work on launch AT ALL
+  ;; also tried above and tried in init.el itself
+  (ibuffer-projectile-set-filter-groups)
+  )
 
 ;; now use the function above
 ;; I actually don't like the ibuffer sidebar list. Don't see myself using it.

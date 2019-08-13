@@ -186,6 +186,13 @@
 
 ;; END THEMES
 
+;; trying to allow switching to buffer and not moving to it in an open window
+;; this is an experiement. Would like it to work for tabs
+;; from https://www.gnu.org/software/emacs/manual/html_node/elisp/Switching-Buffers.html
+
+;; no effect for me
+;;(setq switch-to-buffer-in-dedicated-window t)
+
 ;; trying to keep buffers clean
 ;; read this https://www.emacswiki.org/emacs/MidnightMode
 ;;(require 'midnight)
@@ -193,13 +200,27 @@
 (menu-bar-mode 0)
 
 ;; desktop mode so eyebrowse supposedly saves (and other reasons)
+;; 190813 not using eyebrowse. tired of contantly being asked about the desktop
 (desktop-save-mode 1)
+
+;; actually haven't been using winner-mode to this point
+(winner-mode 1)
+
 
 ;; I think this is about pasting into a selection
 (delete-selection-mode 1)
 
 ;; eliminate buffers that mangle tabbar and that I don't need
 ;; FROM https://unix.stackexchange.com/questions/19874/prevent-unwanted-buffers-from-opening
+
+;; PERSIST
+;; this is new, but will undoubtedly find it useful
+;;(use-package persist
+;;  :ensure t
+;;  :init
+;;  (require 'persist))
+
+;; END -- to bad it won't install on my Mac
 
 
 ;; Makes *scratch* empty.
@@ -301,6 +322,30 @@
 	  (lambda ()
 	    (dired-hide-details-mode)
 	    (dired-sort-toggle-or-edit)))
+
+;; my code attempt based on https://stackoverflow.com/questions/5151620/how-do-i-make-this-emacs-frame-keep-its-buffer-and-not-get-resized
+
+(defun ae-winlock ()
+  "first attempt at locking a window. worked"
+    (interactive)
+    ;;(set-window-dedicated-p (selected-window) 1)
+    (window-fixed-size-p (selected-window) 1)
+    )
+
+
+
+;;(defun ae-winlock ()
+;;  "first attempt at locking a window. worked"
+;;    (interactive)
+;;    (set-window-dedicated-p (selected-window) 1))
+
+;; end my code
+
+;;(add-hook 'shell-mode-hook
+;;      (lambda ()
+;;        (interactive)
+;;        (set-window-dedicated-p (selected-window) 1)))
+
 
 ;; better defaults and registers (I hope?)
 ;; from https://www.emacswiki.org/emacs/BetterRegisters
@@ -420,6 +465,14 @@
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
 
 
+;; org to RST for Sphinx
+(use-package ox-rst
+  :ensure t
+  :init
+  (require 'ox-rst)
+  )
+
+
 ;; multiple cursors
 (use-package multiple-cursors
   :ensure t
@@ -443,7 +496,14 @@
 ;;(global-set-key (kbd "C-x !") 'toggle-maximize-buffer)
 
 ;; I actually want toggle to be the default behavior
-(global-set-key (kbd "C-x 1") 'toggle-maximize-buffer)
+;; this worked. Seeing if zygospore adds features I'd like
+;;(global-set-key (kbd "C-x 1") 'toggle-maximize-buffer)
+
+(use-package zygospore
+  :ensure t
+  :init
+  (global-set-key (kbd "C-x 1") 'zygospore-toggle-delete-other-windows))
+
 
 ;; END toggle-maximize
 
@@ -504,6 +564,130 @@
   (setq enable-recursive-minibuffers t)
   (global-set-key (kbd "C-c C-r") 'ivy-resume)
   (global-set-key (kbd "<f6>") 'ivy-resume))
+
+(use-package ivy-hydra
+  :ensure t
+  :init
+  (require 'ivy-hydra))
+
+;; from https://oremacs.com/2015/04/15/hydra-idle-hint/
+;; not sure what it does for me, but it worked as an interface
+;;(defhydra hydra-toggle (:color blue
+;;                        :idle 1.0)
+;;  "toggle"
+;;  ("a" abbrev-mode "abbrev")
+;;  ("d" toggle-debug-on-error "debug")
+;;  ("f" auto-fill-mode "fill")
+;;  ("t" toggle-truncate-lines "truncate")
+;;  ("q" nil "cancel"))
+;;(global-set-key (kbd "C-c C-v") 'hydra-toggle/body)
+
+
+
+;; I want this to work for ibuffer and ibuffer-sidebar specifically
+;; begin helpful ibuffer Hydra
+;; from https://github.com/abo-abo/hydra/wiki/Ibuffer
+
+(defhydra hydra-ibuffer-main (:color pink :hint nil)
+  "
+ ^Navigation^ | ^Mark^        | ^Actions^        | ^View^
+-^----------^-+-^----^--------+-^-------^--------+-^----^-------
+  _k_:    ʌ   | _m_: mark     | _D_: delete      | _g_: refresh
+ _RET_: visit | _u_: unmark   | _S_: save        | _s_: sort
+  _j_:    v   | _*_: specific | _a_: all actions | _/_: filter
+-^----------^-+-^----^--------+-^-------^--------+-^----^-------
+"
+  ("j" ibuffer-forward-line)
+  ("RET" ibuffer-visit-buffer :color blue)
+  ("k" ibuffer-backward-line)
+
+  ("m" ibuffer-mark-forward)
+  ("u" ibuffer-unmark-forward)
+  ("*" hydra-ibuffer-mark/body :color blue)
+
+  ("D" ibuffer-do-delete)
+  ("S" ibuffer-do-save)
+  ("a" hydra-ibuffer-action/body :color blue)
+
+  ("g" ibuffer-update)
+  ("s" hydra-ibuffer-sort/body :color blue)
+  ("/" hydra-ibuffer-filter/body :color blue)
+
+  ("o" ibuffer-visit-buffer-other-window "other window" :color blue)
+  ("q" quit-window "quit ibuffer" :color blue)
+  ("." nil "toggle hydra" :color blue))
+
+(defhydra hydra-ibuffer-mark (:color teal :columns 5
+                              :after-exit (hydra-ibuffer-main/body))
+  "Mark"
+  ("*" ibuffer-unmark-all "unmark all")
+  ("M" ibuffer-mark-by-mode "mode")
+  ("m" ibuffer-mark-modified-buffers "modified")
+  ("u" ibuffer-mark-unsaved-buffers "unsaved")
+  ("s" ibuffer-mark-special-buffers "special")
+  ("r" ibuffer-mark-read-only-buffers "read-only")
+  ("/" ibuffer-mark-dired-buffers "dired")
+  ("e" ibuffer-mark-dissociated-buffers "dissociated")
+  ("h" ibuffer-mark-help-buffers "help")
+  ("z" ibuffer-mark-compressed-file-buffers "compressed")
+  ("b" hydra-ibuffer-main/body "back" :color blue))
+
+(defhydra hydra-ibuffer-action (:color teal :columns 4
+                                :after-exit
+                                (if (eq major-mode 'ibuffer-mode)
+                                    (hydra-ibuffer-main/body)))
+  "Action"
+  ("A" ibuffer-do-view "view")
+  ("E" ibuffer-do-eval "eval")
+  ("F" ibuffer-do-shell-command-file "shell-command-file")
+  ("I" ibuffer-do-query-replace-regexp "query-replace-regexp")
+  ("H" ibuffer-do-view-other-frame "view-other-frame")
+  ("N" ibuffer-do-shell-command-pipe-replace "shell-cmd-pipe-replace")
+  ("M" ibuffer-do-toggle-modified "toggle-modified")
+  ("O" ibuffer-do-occur "occur")
+  ("P" ibuffer-do-print "print")
+  ("Q" ibuffer-do-query-replace "query-replace")
+  ("R" ibuffer-do-rename-uniquely "rename-uniquely")
+  ("T" ibuffer-do-toggle-read-only "toggle-read-only")
+  ("U" ibuffer-do-replace-regexp "replace-regexp")
+  ("V" ibuffer-do-revert "revert")
+  ("W" ibuffer-do-view-and-eval "view-and-eval")
+  ("X" ibuffer-do-shell-command-pipe "shell-command-pipe")
+  ("b" nil "back"))
+
+(defhydra hydra-ibuffer-sort (:color amaranth :columns 3)
+  "Sort"
+  ("i" ibuffer-invert-sorting "invert")
+  ("a" ibuffer-do-sort-by-alphabetic "alphabetic")
+  ("v" ibuffer-do-sort-by-recency "recently used")
+  ("s" ibuffer-do-sort-by-size "size")
+  ("f" ibuffer-do-sort-by-filename/process "filename")
+  ("m" ibuffer-do-sort-by-major-mode "mode")
+  ("b" hydra-ibuffer-main/body "back" :color blue))
+
+(defhydra hydra-ibuffer-filter (:color amaranth :columns 4)
+  "Filter"
+  ("m" ibuffer-filter-by-used-mode "mode")
+  ("M" ibuffer-filter-by-derived-mode "derived mode")
+  ("n" ibuffer-filter-by-name "name")
+  ("c" ibuffer-filter-by-content "content")
+  ("e" ibuffer-filter-by-predicate "predicate")
+  ("f" ibuffer-filter-by-filename "filename")
+  (">" ibuffer-filter-by-size-gt "size")
+  ("<" ibuffer-filter-by-size-lt "size")
+  ("/" ibuffer-filter-disable "disable")
+  ("b" hydra-ibuffer-main/body "back" :color blue))
+
+;; end helpful ibuffer Hydra
+
+
+
+
+
+
+
+
+
 
 ;; from https://github.com/abo-abo/swiper/issues/1079
 ;; changed from peng to ae
@@ -587,6 +771,7 @@
 
 
 ;; projectile first
+;; my current projectile bundles in workspaces and is from a guy remaking Spacemacs from scratch
 (load-library "projectile_INIT")
 
 ;; then purpose (new 190808)
@@ -594,7 +779,18 @@
 
 ;; dired-sidebar or treemacs ... or both!
 (load-library "dired-sidebar_INIT")
+
+;; would like this to be set as default.
+;; not sure where to call it at startup, however
+;;(ibuffer-projectile-set-filter-groups)
+;; apparently, here is not the place
+
 ;;(load-library "treemacs_INIT")
+
+;; mixed bag experience with elscreen
+;; have yet to save sessions across reboots
+;;(load-library "elscreen_INIT")
+
 
 ;; doom theme (newer possible choice)
 ;;(load-library "doom-themes_INIT")
@@ -733,8 +929,10 @@
 ;; something seems to be trumping these keyboard shortcuts from my centarur-tabs
 ;;  ("C-<right>" . other-window)
 ;;  ("C-<left>" . previous-multiframe-window)
-  (global-set-key (kbd "C-<right>") 'other-window)
-  (global-set-key (kbd "C-<left>") 'previous-multiframe-window)
+
+;; these don't work in my current shell setup
+(global-set-key (kbd "C-<right>") 'other-window)
+(global-set-key (kbd "C-<left>") 'previous-multiframe-window)
 
 
 (custom-set-variables
@@ -753,12 +951,16 @@
  '(custom-safe-themes
    (quote
     ("151bde695af0b0e69c3846500f58d9a0ca8cb2d447da68d7fbf4154dcf818ebc" "f0dc4ddca147f3c7b1c7397141b888562a48d9888f1595d69572db73be99a024" "100e7c5956d7bb3fd0eebff57fde6de8f3b9fafa056a2519f169f85199cc1c96" "e9776d12e4ccb722a2a732c6e80423331bcb93f02e089ba2a4b02e85de1cf00e" "b3775ba758e7d31f3bb849e7c9e48ff60929a792961a2d536edec8f68c671ca5" "c48551a5fb7b9fc019bf3f61ebf14cf7c9cdca79bcb2a4219195371c02268f11" "11e57648ab04915568e558b77541d0e94e69d09c9c54c06075938b6abc0189d8" "a8245b7cc985a0610d71f9852e9f2767ad1b852c2bdea6f4aadc12cce9c4d6d0" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" "1b8d67b43ff1723960eb5e0cba512a2c7a2ad544ddb2533a90101fd1852b426e" default)))
+ '(elscreen-display-tab nil)
+ '(elscreen-prefix-key (kbd "C-z"))
+ '(elscreen-tab-display-control nil)
+ '(elscreen-tab-display-kill-screen nil)
  '(org-agenda-files
    (quote
     ("~/Nextcloud/Documents/agendas/aaa_capture.org" "~/Nextcloud/Documents/agendas/general_work.org")))
  '(package-selected-packages
    (quote
-    (ibuffer-projectile counsel-projectile ggtags ivy-rich centaur-tabs powershell addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
+    (persist ibuffer-projectile counsel-projectile ggtags ivy-rich centaur-tabs powershell addressbook-bookmark solaire-mode elpy all-the-icons-dired dired-sidebar counsel swiper ivy multiple-cursors telephone-line elmacro which-key molokai-theme try use-package)))
  '(python-indent-guess-indent-offset nil)
  '(python-indent-offset 2)
  '(treemacs-git-mode (quote extended)))
