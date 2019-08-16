@@ -530,6 +530,9 @@
    (- (window-text-height)
       next-screen-context-lines)))
 
+;; 190815 I wonder if this is why I have trouble
+;; assigning shortcuts that involve <next> and <prior>?
+;; I do HATE how pagedown doesn't go to the end of a file
 (global-set-key [next] 'sfp-page-down)
 (global-set-key [prior] 'sfp-page-up)
 
@@ -562,6 +565,7 @@
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
   (setq enable-recursive-minibuffers t)
+  (setq ivy-display-style 'fancy) ;; new 190815
   (global-set-key (kbd "C-c C-r") 'ivy-resume)
   (global-set-key (kbd "<f6>") 'ivy-resume))
 
@@ -680,6 +684,8 @@
 
 ;; end helpful ibuffer Hydra
 
+;; HYDRA needs its own init.
+
 
 
 
@@ -766,13 +772,18 @@
 ;; this didn't quite do what I wanted in that it balanced everything
 ;;(load-library "afe-winsplit_INIT")
 
+(load-library "hydra_major_INIT")
 
 (load-library "gtags_INIT")
 
+(load-library "bookmarkp_INIT")
 
 ;; projectile first
 ;; my current projectile bundles in workspaces and is from a guy remaking Spacemacs from scratch
 (load-library "projectile_INIT")
+
+;; perspective
+(load-library "perspective_INIT")
 
 ;; then purpose (new 190808)
 (load-library "purpose_INIT")

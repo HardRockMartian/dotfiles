@@ -78,6 +78,9 @@
   ;; not sure where this needs to go ... if it can work on launch AT ALL
   ;; also tried above and tried in init.el itself
   (ibuffer-projectile-set-filter-groups)
+
+  ;; haven't found a way to hide buffers under other projects
+  (setq ibuffer-sidebar-display-summary f)
   )
 
 ;; now use the function above
